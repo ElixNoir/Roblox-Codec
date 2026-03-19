@@ -3,7 +3,7 @@
 --[[
 
 	Codec - A Roblox Luau module for packing bytes into buffers.
-  Mod: Mask
+	Mod: Mask
 
 ]]
 
@@ -15,6 +15,18 @@
 -- -- State
 
 local Module = {}
+
+
+-- -- Helpers
+
+local bit32_band = bit32.band
+local bit32_bor = bit32.bor
+
+local buffer_readu8 = buffer.readu8
+local buffer_writeu8 = buffer.writeu8
+
+
+-- -- Functions
 
 function Module.read(b: buffer, offset: number): (boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean)
 	local mask = buffer_readu8(b, offset)
