@@ -3,7 +3,7 @@
 --[[
 
 	Codec - A Roblox Luau module for packing bytes into buffers.
-  Mod: String
+	Mod: String
 
 ]]
 
@@ -15,6 +15,16 @@
 -- -- State
 
 local Module = {}
+
+
+-- -- Helpers
+
+local buffer_readstring = buffer.readstring
+local buffer_readu8 = buffer.readu8
+local buffer_readu16 = buffer.readu16
+local buffer_writestring = buffer.writestring
+local buffer_write8 = buffer.writeu8
+local buffer_writeu16 = buffer.writeu16
 
 
 -- -- Functions
