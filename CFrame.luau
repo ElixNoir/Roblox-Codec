@@ -3,7 +3,7 @@
 --[[
 
 	Codec - A Roblox Luau module for packing bytes into buffers.
-  Mod: CFrame
+	Mod: CFrame
 
 ]]
 
@@ -14,13 +14,26 @@
 
 -- -- State
 
+local Codec_Float16 = require(script.Parent.Float16)
+
 local Module = {}
+
+
+-- -- Helpers
+
+local buffer_readu32 = buffer.readu32
+local buffer_writeu32 = buffer.writeu32
+
+local math_sqrt = math.sqrt
+
+local readf16 = Codec_Float16.read
+local writef16 = Codec_Float16.write
 
 
 -- -- Functions
 
 --[[
-  Helper method for extracting a quaternion from a CFrame.
+  Extract a quaternion from a CFrame.
   returns: x, y, z, rx, ry, rz, rw
 --]]
 local function quaternionXYZFromCFrame(cframe: CFrame): (number, number, number, number, number, number, number)
@@ -50,12 +63,12 @@ function Module.read(b: buffer, offset: number): (CFrame, number)
 	local x = buffer_readf32(b, offset)
 	local y = buffer_readf32(b, offset + 4)
 	local z = buffer_readf32(b, offset + 8)
-	local qX = buffer_readf32(b, offset + 12)
-	local qY = buffer_readf32(b, offset + 16)
-	local qZ = buffer_readf32(b, offset + 20)
-	local qW = buffer_readf32(b, offset + 24)
+	local rx = buffer_readf32(b, offset + 12)
+	local ry = buffer_readf32(b, offset + 16)
+	local rz = buffer_readf32(b, offset + 20)
+	local rw = buffer_readf32(b, offset + 24)
   
-	return cframe_new(x, y, z, qX, qY, qZ, qW), 28
+	return cframe_new(x, y, z, rx, ry, rz, rw), 28
 end
 
 --[[
@@ -63,15 +76,15 @@ end
 	- Writes 28 bytes
 ]] 
 function Module.write(b: buffer, offset: number, cframe: CFrame): number
-	local x, y, z, m00, m01, m02, m10, m11, m12, m20, m21, m22 = quaternionXYZFromCFrame(
+	local x, y, z, rx, ry, rz, rw = quaternionXYZFromCFrame(cframe)
 
 	buffer_writef32(b, offset, x)
 	buffer_writef32(b, offset + 4, y)
 	buffer_writef32(b, offset + 8, z)
-	buffer_writef32(b, offset + 12, qX)
-	buffer_writef32(b, offset + 16, qY)
-	buffer_writef32(b, offset + 20, qZ)
-	buffer_writef32(b, offset + 24, qW)
+	buffer_writef32(b, offset + 12, rx)
+	buffer_writef32(b, offset + 16, ry)
+	buffer_writef32(b, offset + 20, rz)
+	buffer_writef32(b, offset + 24, rw)
 	
 	return 28
 end
@@ -84,12 +97,12 @@ function Module.readHalfPrecision(b: buffer, offset: number): (CFrame, number)
 	local x = readf16(b, offset)
 	local y = readf16(b, offset + 2)
 	local z = readf16(b, offset + 4)
-	local qX = readf16(b, offset + 6)
-	local qY = readf16(b, offset + 8)
-	local qZ = readf16(b, offset + 10)
-	local qW = readf16(b, offset + 12)
+	local rx = readf16(b, offset + 6)
+	local ry = readf16(b, offset + 8)
+	local rz = readf16(b, offset + 10)
+	local rw = readf16(b, offset + 12)
   
-	return cframe_new(x, y, z, qX, qY, qZ, qW), 14
+	return cframe_new(x, y, z, rx, ry, rz, rw), 14
 end
 
 --[[
@@ -97,15 +110,15 @@ end
 	- Writes 14 bytes
 ]] 
 function Module.writeHalfPrecision(b: buffer, offset: number, cframe: CFrame): number
-	local x, y, z, m00, m01, m02, m10, m11, m12, m20, m21, m22 = quaternionXYZFromCFrame(cframe)
+	local x, y, z, rx, ry, rz, rw = quaternionXYZFromCFrame(cframe)
 
 	writef16(b, offset, x)
 	writef16(b, offset + 2, y)
 	writef16(b, offset + 4, z)
-	writef16(b, offset + 6, qX)
-	writef16(b, offset + 8, qY)
-	writef16(b, offset + 10, qZ)
-	writef16(b, offset + 12, qW)
+	writef16(b, offset + 6, rx)
+	writef16(b, offset + 8, ry)
+	writef16(b, offset + 10, rz)
+	writef16(b, offset + 12, rw)
 
 	return 14
 end
