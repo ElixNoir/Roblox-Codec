@@ -2,8 +2,8 @@
 
 --[[
 
-  Codec - A Roblox Luau module for packing bytes into buffers.
-  Mod: Float16
+	Codec - A Roblox Luau module for packing bytes into buffers.
+	Mod: Float16
 
 ]]
 
@@ -15,6 +15,18 @@
 -- -- State
 
 local Module = {}
+
+
+-- -- Helpers
+
+local bit32_band = bit32.band
+local bit32_lshift = bit32.lshift
+local bit32_rshift = bit32.rshift
+
+local buffer_readu16 = buffer.readu16
+local buffer_writeu16 = buffer.writeu16
+
+local math_floor = math.floor
 
 
 -- -- Functions
@@ -84,7 +96,7 @@ function Module.write(b: buffer, offset: number, value: number): number
 	elseif expHalf >= 31 then
 		buffer_writeu16(b, offset, sign + 0x7C00)
 	else
-		local mantissa = math_floor((frac - 1) * 2 ^ 10 + 0.5)
+		local mantissa = math_floor((frac - 1) * 1024 + 0.5)
 		local bits = sign + bit32_lshift(expHalf, 10) + mantissa
 		buffer_writeu16(b, offset, bits)
 	end
