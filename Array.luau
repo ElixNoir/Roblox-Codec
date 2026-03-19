@@ -19,6 +19,16 @@
 local Module = {}
 
 
+-- -- Helpers
+
+local buffer_readu8 = buffer.readu8
+local buffer_readu16 = buffer.readu16
+local buffer_writeu8 = buffer.writeu8
+local buffer_writeu16 = buffer.writeu16
+
+local table_create = table.create
+
+
 -- -- Functions
 
 --[[
