@@ -14,14 +14,26 @@
 
 -- -- State
 
+local Codec_Float16 = require(script.Parent.Float16)
+
 local Module = {}
 
 
 -- -- Helpers
 
+local buffer_readf32 = buffer.readf32
+local buffer_readu8 = buffer.readu8
+local buffer_writef32 = buffer.writef32
+local buffer_writeu8 = buffer.writeu8
+
+local math_sqrt = math.sqrt
+
+local readf16 = Codec_Float16.read
+local writef16 = Codec_Float16.write
+
 --[[
-  Extract a quaternion from a CFrame.
-  returns: rx, ry, rz, rw
+	Extract a quaternion from a CFrame.
+	returns: rx, ry, rz, rw
 --]]
 local function quaternionFromCFrame(cframe: CFrame): (number, number, number, number)
   local _, _, _, m00, m01, m02, m10, m11, m12, m20, m21, m22 = cframe:Orthonormalize():GetComponents()
@@ -50,12 +62,12 @@ end
 	- Reads 16 bytes
 ]] 
 function Module.read(b: buffer, offset: number): (CFrame, number)
-	local qX = buffer_readf32(b, offset)
-	local qY = buffer_readf32(b, offset + 4)
-	local qZ = buffer_readf32(b, offset + 8)
-	local qW = buffer_readf32(b, offset + 12)
+	local rx = buffer_readf32(b, offset)
+	local ry = buffer_readf32(b, offset + 4)
+	local rz = buffer_readf32(b, offset + 8)
+	local rw = buffer_readf32(b, offset + 12)
 
-	return cframe_new(0, 0, 0, qX, qY, qZ, qW), 16
+	return cframe_new(0, 0, 0, rx, ry, rz, rw), 16
 end
 
 --[[
@@ -78,12 +90,12 @@ end
 	- Reads 4 bytes
 ]] 
 function Module.readFixedPrecision(b: buffer, offset: number): (CFrame, number)
-	local qX = 2 * (buffer_readu8(b, offset) / 255) - 1
-	local qY = 2 * (buffer_readu8(b, offset + 1) / 255) - 1
-	local qZ = 2 * (buffer_readu8(b, offset + 2) / 255) - 1
-	local qW = 2 * (buffer_readu8(b, offset + 3) / 255) - 1
+	local rx = 2 * (buffer_readu8(b, offset) / 255) - 1
+	local ry = 2 * (buffer_readu8(b, offset + 1) / 255) - 1
+	local rz = 2 * (buffer_readu8(b, offset + 2) / 255) - 1
+	local rw = 2 * (buffer_readu8(b, offset + 3) / 255) - 1
 
-	return cframe_new(0, 0, 0, qX, qY, qZ, qW), 4
+	return cframe_new(0, 0, 0, rx, ry, rz, rw), 4
 end
 
 --[[
@@ -106,12 +118,12 @@ end
 	- Reads 8 bytes
 ]] 
 function Module.readHalfPrecision(b: buffer, offset: number): (CFrame, number)
-	local qX = readf16(b, offset)
-	local qY = readf16(b, offset + 2)
-	local qZ = readf16(b, offset + 4)
-	local qW = readf16(b, offset + 6)
+	local rx = readf16(b, offset)
+	local ry = readf16(b, offset + 2)
+	local rz = readf16(b, offset + 4)
+	local rw = readf16(b, offset + 6)
 
-	return cframe_new(0, 0, 0, qX, qY, qZ, qW), 8
+	return cframe_new(0, 0, 0, rx, ry, rz, rw), 8
 end
 
 --[[
