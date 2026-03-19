@@ -3,7 +3,7 @@
 --[[
 
 	Codec - A Roblox Luau module for packing bytes into buffers.
-  Mod: UID
+	Mod: UID
 
 ]]
 
@@ -15,6 +15,19 @@
 -- -- State
 
 local Module = {}
+
+
+-- -- Helpers
+
+local bit32_band = bit32.band
+local bit32_rshift = bit32.rshift
+
+local buffer_readu32 = buffer.readu32
+local buffer_writeu32 = buffer.writeu32
+
+local string_format = string.format
+local string_gsub = string.gsub
+local string_sub = string.sub
 
 
 -- -- Functions
@@ -41,13 +54,13 @@ end
 	Write a unique identity.
 	- Writes 16 bytes
 ]] 
-function Module.write(b: buffer, offset: number, uuid: string): number
-	uuid = uuid:gsub('-', '')
+function Module.write(b: buffer, offset: number, uid: string): number
+	uid = string_gsub(uid, '-', '')
   
-	buffer_writeu32(b, offset, tonumber(uuid:sub(1, 8), 16))
-	buffer_writeu32(b, offset + 4, tonumber(uuid:sub(9, 16), 16))
-	buffer_writeu32(b, offset + 8, tonumber(uuid:sub(17, 24), 16))
-	buffer_writeu32(b, offset + 12, tonumber(uuid:sub(25, 32), 16))
+	buffer_writeu32(b, offset, tonumber(string_sub(uid, 1, 8), 16))
+	buffer_writeu32(b, offset + 4, tonumber(string_sub(uid, 9, 16), 16))
+	buffer_writeu32(b, offset + 8, tonumber(string_sub(uid, 17, 24), 16))
+	buffer_writeu32(b, offset + 12, tonumber(string_sub(uid, 25, 32), 16))
 	
 	return 16
 end
