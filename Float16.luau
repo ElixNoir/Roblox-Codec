@@ -1,3 +1,17 @@
+--- Author: COMT
+
+--[[
+
+  Codec - A Roblox Luau module for packing bytes into buffers.
+  Mod: Float16
+
+]]
+
+--!native
+--!optimize 2
+--!strict
+
+
 -- -- State
 
 local Module = {}
@@ -5,6 +19,10 @@ local Module = {}
 
 -- -- Functions
 
+--[[
+  Read a half-precision floating point value.
+  - Range is [-65504, 65504]
+]]
 function Module.read(b: buffer, offset: number): (number, number)
 	local bits = buffer_readu16(b, offset)
 	if bits == 0 then
@@ -24,6 +42,10 @@ function Module.read(b: buffer, offset: number): (number, number)
 	end
 end
 
+--[[
+  Read a half-precision floating point value.
+  - Range is [-65504, 65504]
+]]
 function Module.write(b: buffer, offset: number, value: number): number
 	if value ~= value then
 		buffer_writeu16(b, offset, 0x7E00)
