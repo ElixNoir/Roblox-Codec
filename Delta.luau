@@ -4,6 +4,9 @@
 
     Mod: Delta
 
+    Note:  At the moment, read and write operations use the same state.  This will be the next thing for me to finalize.
+    I may want to see if bit32_bor will be better than addition when I get the chance to test any of these repos.
+
     Read Pipeline:
         1. Run-length decode
         2. XOR delta decode
@@ -27,6 +30,9 @@ local Module = {}
 
 
 -- -- Helpers
+
+--local bit32_band = bit32.band
+local bit32_bxor = bit32.bxor
 
 local buffer_copy = buffer.copy
 local buffer_create = buffer.create
@@ -62,13 +68,15 @@ local Lane6_Position = 0x50000
 local Lane7_Position = 0x60000
 local Lane8_Position = 0x70000
 
+--[[ converting this to bit32 stuff is annoying and i'm too lazy to look at it right now
 local function zigzag_encode(n: number): number
-    return (n << 1) ~ (n >> 31)
+    return (n * 2) ~ (n // 0x80000000)
 end
 
 local function zigzag_decode(n: number): number
-    return (n >> 1) ~ -(n & 1)
+    return (n // 2) ~ -bit32_band(n, 1)
 end
+]]
 
 function Module.read(b: buffer, offset: number)
     Lanes = b
