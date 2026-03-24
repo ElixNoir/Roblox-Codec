@@ -21,8 +21,14 @@ local Module = {}
 
 -- -- Helpers
 
+local buffer_readf32 = buffer.readf32
+local buffer_readu8 = buffer.readu8
 local buffer_readu32 = buffer.readu32
+local buffer_writef32 = buffer.writef32
+local buffer_writeu8 = buffer.writeu8
 local buffer_writeu32 = buffer.writeu32
+
+local cframe_new = CFrame.new
 
 local math_sqrt = math.sqrt
 
@@ -37,12 +43,12 @@ local writef16 = Codec_Float16.write
   returns: x, y, z, rx, ry, rz, rw
 --]]
 local function quaternionXYZFromCFrame(cframe: CFrame): (number, number, number, number, number, number, number)
-  local x, y, z, m00, m01, m02, m10, m11, m12, m20, m21, m22 = cframe:Orthonormalize():GetComponents()
+	local x, y, z, m00, m01, m02, m10, m11, m12, m20, m21, m22 = cframe:Orthonormalize():GetComponents()
 
 	local trace = m00 + m11 + m22
 	if trace > 0 then
 		local s = math_sqrt(trace + 1) * 2
-		return x, y, z, (m21 - m12) / s, y = (m02 - m20) / s, (m10 - m01) / s, 0.25 * s
+		return x, y, z, (m21 - m12) / s, (m02 - m20) / s, (m10 - m01) / s, 0.25 * s
 	elseif m00 > m11 and m00 > m22 then
 		local s = math_sqrt(1 + m00 - m11 - m22) * 2
 		return x, y, z, 0.25 * s, (m01 + m10) / s, (m02 + m20) / s, (m21 - m12) / s
@@ -60,14 +66,9 @@ end
 	- Reads 28 bytes
 ]] 
 function Module.read(b: buffer, offset: number): (CFrame, number)
-	local x = buffer_readf32(b, offset)
-	local y = buffer_readf32(b, offset + 4)
-	local z = buffer_readf32(b, offset + 8)
-	local rx = buffer_readf32(b, offset + 12)
-	local ry = buffer_readf32(b, offset + 16)
-	local rz = buffer_readf32(b, offset + 20)
-	local rw = buffer_readf32(b, offset + 24)
-  
+	local x, y, z = buffer_readf32(b, offset), buffer_readf32(b, offset + 4), buffer_readf32(b, offset + 8)
+	local rx, ry, rz, rw = buffer_readf32(b, offset + 12), buffer_readf32(b, offset + 16), buffer_readf32(b, offset + 20), buffer_readf32(b, offset + 24)
+
 	return cframe_new(x, y, z, rx, ry, rz, rw), 28
 end
 
@@ -85,7 +86,7 @@ function Module.write(b: buffer, offset: number, cframe: CFrame): number
 	buffer_writef32(b, offset + 16, ry)
 	buffer_writef32(b, offset + 20, rz)
 	buffer_writef32(b, offset + 24, rw)
-	
+
 	return 28
 end
 
@@ -94,14 +95,9 @@ end
 	- Reads 14 bytes
 ]] 
 function Module.readHalfPrecision(b: buffer, offset: number): (CFrame, number)
-	local x = readf16(b, offset)
-	local y = readf16(b, offset + 2)
-	local z = readf16(b, offset + 4)
-	local rx = readf16(b, offset + 6)
-	local ry = readf16(b, offset + 8)
-	local rz = readf16(b, offset + 10)
-	local rw = readf16(b, offset + 12)
-  
+	local x, y, z = readf16(b, offset), readf16(b, offset + 2), readf16(b, offset + 4)
+	local rx, ry, rz, rw = readf16(b, offset + 6), readf16(b, offset + 8), readf16(b, offset + 10), readf16(b, offset + 12)
+
 	return cframe_new(x, y, z, rx, ry, rz, rw), 14
 end
 
@@ -121,6 +117,35 @@ function Module.writeHalfPrecision(b: buffer, offset: number, cframe: CFrame): n
 	writef16(b, offset + 12, rw)
 
 	return 14
+end
+
+--[[
+	Read a CFrame with half-precision XYZ coordinates and 1-byte quantized orientation.
+	- Writes 10 bytes
+]] 
+function Module.readHalfPrecisionXYZQuantizedOrientation(b: buffer, offset: number, cframe: CFrame): (CFrame, number)
+	local x, y, z = readf16(b, offset), readf16(b, offset + 2), readf16(b, offset + 4)
+	local rx, ry, rz, rw = buffer_readu8(b, offset + 6) / 127.5 - 1, buffer_readu8(b, offset + 7) / 127.5 - 1, buffer_readu8(b, offset + 8) / 127.5 - 1, buffer_readu8(b, offset + 9) / 127.5 - 1
+
+	return cframe_new(x, y, z, rx, ry, rz, rw), 10
+end
+
+--[[
+	Write a CFrame with half-precision XYZ coordinates and 1-byte quantized orientation.
+	- Writes 10 bytes
+]] 
+function Module.writeHalfPrecisionXYZQuantizedOrientation(b: buffer, offset: number, cframe: CFrame): number
+	local x, y, z, rx, ry, rz, rw = quaternionXYZFromCFrame(cframe)
+
+	writef16(b, offset, x)
+	writef16(b, offset + 2, y)
+	writef16(b, offset + 4, z)
+	buffer_writeu8(b, offset + 6, (rx * 127.5 + 128) // 1)
+	buffer_writeu8(b, offset + 7, (ry * 127.5 + 128) // 1)
+	buffer_writeu8(b, offset + 8, (rz * 127.5 + 128) // 1)
+	buffer_writeu8(b, offset + 9, (rw * 127.5 + 128) // 1)
+
+	return 10
 end
 
 
