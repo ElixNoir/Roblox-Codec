@@ -3,12 +3,11 @@
 --[[
 
   Codec - A Roblox Luau module for packing bytes into buffers.
-  Mod: CFrame
+  Mod: Quaternion
 
 ]]
 
 --!native
---!optimize 2
 --!strict
 
 
@@ -26,6 +25,8 @@ local buffer_readu8 = buffer.readu8
 local buffer_writef32 = buffer.writef32
 local buffer_writeu8 = buffer.writeu8
 
+local cframe_new = CFrame.new
+
 local math_sqrt = math.sqrt
 
 local readf16 = Codec_Float16.read
@@ -36,12 +37,12 @@ local writef16 = Codec_Float16.write
 	returns: rx, ry, rz, rw
 --]]
 local function quaternionFromCFrame(cframe: CFrame): (number, number, number, number)
-  local _, _, _, m00, m01, m02, m10, m11, m12, m20, m21, m22 = cframe:Orthonormalize():GetComponents()
+	local _, _, _, m00, m01, m02, m10, m11, m12, m20, m21, m22 = cframe:Orthonormalize():GetComponents()
 
 	local trace = m00 + m11 + m22
 	if trace > 0 then
 		local s = math_sqrt(trace + 1) * 2
-		return (m21 - m12) / s, y = (m02 - m20) / s, (m10 - m01) / s, 0.25 * s
+		return (m21 - m12) / s, (m02 - m20) / s, (m10 - m01) / s, 0.25 * s
 	elseif m00 > m11 and m00 > m22 then
 		local s = math_sqrt(1 + m00 - m11 - m22) * 2
 		return 0.25 * s, (m01 + m10) / s, (m02 + m20) / s, (m21 - m12) / s
@@ -76,12 +77,12 @@ end
 ]] 
 function Module.write(b: buffer, offset: number, cframe: CFrame): number
 	local rx, ry, rz, rw = quaternionFromCFrame(cframe)
-	
+
 	buffer_writef32(b, offset, rx)
 	buffer_writef32(b, offset + 4, ry)
 	buffer_writef32(b, offset + 8, rz)
 	buffer_writef32(b, offset + 12, rw)
-	
+
 	return 16
 end
 
@@ -105,10 +106,10 @@ end
 function Module.writeFixedPrecision(b: buffer, offset: number, cframe: CFrame): number
 	local rx, ry, rz, rw = quaternionFromCFrame(cframe)
 
-	buffer_writeu8(b, offset, math_floor((rx / 2 + .5) * 0xFF + .5))
-	buffer_writeu8(b, offset + 1, math_floor((ry / 2 + .5) * 0xFF + .5))
-	buffer_writeu8(b, offset + 2, math_floor((rz / 2 + .5) * 0xFF + .5))
-	buffer_writeu8(b, offset + 3, math_floor((rw / 2 + .5) * 0xFF + .5))
+	buffer_writeu8(b, offset, ((rx / 2 + .5) * 0xFF + .5) // 1)
+	buffer_writeu8(b, offset + 1, ((ry / 2 + .5) * 0xFF + .5) // 1)
+	buffer_writeu8(b, offset + 2, ((rz / 2 + .5) * 0xFF + .5) // 1)
+	buffer_writeu8(b, offset + 3, ((rw / 2 + .5) * 0xFF + .5) // 1)
 
 	return 4
 end
